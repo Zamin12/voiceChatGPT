@@ -1,0 +1,90 @@
+<h1>Speech recognition</h1>
+<p>Tap/click then say a something of the app.</p>
+<div>
+  <textarea id="dialog" style="width: 1000px; height:500px;overflow: scroll;"></textarea>
+  <br /><br />
+  <button id="speak" style="width: 100px; height:50px;">Speak</button>
+</div>
+
+<script>
+
+/*   function getLocalStream() {
+    navigator.mediaDevices
+      .getUserMedia({ video: false, audio: true })
+      .then((stream) => {
+        window.localStream = stream; // A
+        window.localAudio.srcObject = stream; // B
+        window.localAudio.autoplay = true; // C
+      })
+      .catch((err) => {
+        console.error(`you got an error: ${err}`);
+      });
+  }
+
+  getLocalStream(); */
+
+  const key = "..."; //YOUR OPENAI KEY is GOING HERE
+  
+  const dialog = document.querySelector("#dialog");
+  const speak = document.querySelector("#speak");
+
+  const SpeechRecognition = window.SpeechRecognition || webkitSpeechRecognition;
+  const SpeechGrammarList = window.SpeechGrammarList || webkitSpeechGrammarList;
+  const SpeechRecognitionEvent = window.SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
+  const synth = window.speechSynthesis;
+
+  const recognition = new SpeechRecognition();
+  recognition.continuous = false;
+  recognition.lang = "en-US";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  speak.onclick = () => {
+    recognition.start();
+    speak.setAttribute("disabled", "true");
+    console.log(`Start to speak...`);
+  };
+
+  recognition.onresult = (event) => {
+    const text = event.results[0][0].transcript;
+    dialog.textContent += `Zamin: ${text}.\n`;
+    userAction(text);
+    console.log(`Confidence: ${event.results[0][0].confidence}`);
+  };
+
+  recognition.onspeechend = () => {
+    recognition.stop();
+  };
+
+
+  const userAction = async (request) => {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      body: `{
+          "model": "gpt-3.5-turbo",
+          "messages": [
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "${request}"}]}`,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${key}`
+      }
+    });
+    const myJson = await response.json();
+    console.log(JSON.stringify(myJson));
+    speakText = myJson.choices[0].message.content;
+    dialog.textContent += 'chatGPT: ' + speakText + '\n';
+    const utterThis = new SpeechSynthesisUtterance(speakText);
+    utterThis.addEventListener("end", (event) => {
+      speak.removeAttribute("disabled");
+      console.log(
+        `Utterance has finished being spoken after ${event.elapsedTime} seconds.`
+      );
+    });
+    synth.speak(utterThis);
+  }
+
+
+
+
+</script>
