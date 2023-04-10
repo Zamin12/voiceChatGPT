@@ -23,7 +23,8 @@
 
   getLocalStream(); */
 
-  const key = "..."; //YOUR OPENAI KEY is GOING HERE
+  const key = "..."; //Your OPENAI KEY is going here
+  const name = "..."; // Your name is going here
   
   const dialog = document.querySelector("#dialog");
   const speak = document.querySelector("#speak");
@@ -47,7 +48,7 @@
 
   recognition.onresult = (event) => {
     const text = event.results[0][0].transcript;
-    dialog.textContent += `Zamin: ${text}.\n`;
+    dialog.textContent += `${name}: ${text}.\n`;
     userAction(text);
     console.log(`Confidence: ${event.results[0][0].confidence}`);
   };
